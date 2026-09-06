@@ -1,0 +1,4 @@
+node_modules/
+app/.env
+firmware/.pio/
+.DS_Store

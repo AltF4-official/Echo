@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Animatronic Head</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Three.js and Postprocessing Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+</head>
+<body>
+
+  <!-- ===================== Boot Screen ===================== -->
+  <section id="boot-screen" class="boot-screen" role="button" tabindex="0" aria-label="Power on">
+    <div class="boot-glow" aria-hidden="true"></div>
+    <div class="boot-readout">
+      <div id="boot-time" class="boot-time">00:00</div>
+      <div id="boot-date" class="boot-date">SATURDAY, AUGUST 29</div>
+    </div>
+  </section>
+
+  <!-- ===================== Main Screen ===================== -->
+  <main id="main-screen" class="main-screen" hidden>
+    <div class="grid-overlay" aria-hidden="true"></div>
+    <div id="webcam-frame" class="webcam-frame">
+      <video id="webcam-video" class="webcam-video" autoplay muted playsinline></video>
+    </div>
+    <div id="visualizer-container" class="visualizer-container"></div>
+    <div id="screen-edge-glow" class="screen-edge-glow"></div>
+
+    <div class="main-controls">
+      <div id="echo-chat-log-panel" class="echo-chat-log-panel">
+        <div id="echo-chat-log" class="echo-chat-log" aria-live="polite"></div>
+      </div>
+
+      <div id="control-dock" class="control-dock">
+        <div class="echo-chat-form-wrap">
+          <div class="echo-chat-form-inner">
+            <form id="echo-chat-form" class="echo-chat-form" autocomplete="off">
+              <textarea
+                id="echo-chat-input"
+                class="echo-chat-input"
+                placeholder="Talk to him..."
+                autocomplete="off"
+                aria-label="Message Echo"
+                rows="1"
+              ></textarea>
+              <button type="submit" class="echo-chat-send" aria-label="Send" disabled>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <div class="bottom-controls">
+          <button id="mic-btn" class="dock-btn" data-icon="mic" aria-label="Toggle Microphone">
+            <svg class="dock-icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+              <path class="dock-icon-shape" stroke-linejoin="round" stroke-linecap="round" d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V20H8v2h8v-2h-3v-2.08A7 7 0 0 0 19 11h-2z"/>
+              <line class="dock-strike-line" x1="4" y1="20" x2="20" y2="4" stroke-linecap="round"/>
+            </svg>
+          </button>
+
+          <button id="camera-btn" class="dock-btn" data-icon="camera" aria-label="Toggle Camera">
+            <svg class="dock-icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+              <path class="dock-icon-shape" stroke-linejoin="round" stroke-linecap="round" d="M12 5C5.6 5 2 12 2 12s3.6 7 10 7 10-7 10-7-3.6-7-10-7zm0 11.5A4.5 4.5 0 1 1 12 7a4.5 4.5 0 0 1 0 9.5zm0-2.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
+              <line class="dock-strike-line" x1="4" y1="20" x2="20" y2="4" stroke-linecap="round"/>
+            </svg>
+          </button>
+
+          <button id="robot-btn" class="dock-btn" data-icon="robot" aria-label="Connect Echo robot" title="Connect Echo robot">
+            <svg class="dock-icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="4" y="7" width="16" height="13" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/>
+              <path d="M12 4v3M8 12h.01M16 12h.01M8 16h8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+          </button>
+
+          <button id="chat-btn" class="dock-btn" data-icon="chat" aria-label="Toggle Chat">
+            <svg class="dock-icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+              <path class="dock-icon-shape" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-3l-4 4v-4H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+              <line class="dock-text-line" x1="7" y1="9" x2="17" y2="9" stroke-linecap="round"/>
+              <line class="dock-text-line" x1="7" y1="13" x2="14" y2="13" stroke-linecap="round"/>
+              <line class="dock-strike-line" x1="4" y1="20" x2="20" y2="4" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Vertex Shader -->
+  <script id="vertexshader" type="x-shader/x-vertex">
+    uniform float u_time;
+    uniform float u_frequency;
+    varying float vDisplacement;
+    varying vec2 vScreenPos;
+    varying vec3 vNormal;
+    varying vec3 vViewDir;
+
+    vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+    vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+    vec4 permute(vec4 x) { return mod289(((x*34.0)+10.0)*x); }
+    vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+    vec3 fade(vec3 t) { return t*t*t*(t*(t*6.0-15.0)+10.0); }
+
+    float pnoise(vec3 P, vec3 rep) {
+      vec3 Pi0 = mod(floor(P), rep);
+      vec3 Pi1 = mod(Pi0 + vec3(1.0), rep);
+      Pi0 = mod289(Pi0);
+      Pi1 = mod289(Pi1);
+      vec3 Pf0 = fract(P);
+      vec3 Pf1 = Pf0 - vec3(1.0);
+      vec4 ix = vec4(Pi0.x, Pi1.x, Pi0.x, Pi1.x);
+      vec4 iy = vec4(Pi0.yy, Pi1.yy);
+      vec4 iz0 = Pi0.zzzz;
+      vec4 iz1 = Pi1.zzzz;
+
+      vec4 ixy = permute(permute(ix) + iy);
+      vec4 ixy0 = permute(ixy + iz0);
+      vec4 ixy1 = permute(ixy + iz1);
+
+      vec4 gx0 = ixy0 * (1.0 / 7.0);
+      vec4 gy0 = fract(floor(gx0) * (1.0 / 7.0)) - 0.5;
+      gx0 = fract(gx0);
+      vec4 gz0 = vec4(0.5) - abs(gx0) - abs(gy0);
+      vec4 sz0 = step(gz0, vec4(0.0));
+      gx0 -= sz0 * (step(0.0, gx0) - 0.5);
+      gy0 -= sz0 * (step(0.0, gy0) - 0.5);
+
+      vec4 gx1 = ixy1 * (1.0 / 7.0);
+      vec4 gy1 = fract(floor(gx1) * (1.0 / 7.0)) - 0.5;
+      gx1 = fract(gx1);
+      vec4 gz1 = vec4(0.5) - abs(gx1) - abs(gy1);
+      vec4 sz1 = step(gz1, vec4(0.0));
+      gx1 -= sz1 * (step(0.0, gx1) - 0.5);
+      gy1 -= sz1 * (step(0.0, gy1) - 0.5);
+
+      vec3 g000 = vec3(gx0.x,gy0.x,gz0.x);
+      vec3 g100 = vec3(gx0.y,gy0.y,gz0.y);
+      vec3 g010 = vec3(gx0.z,gy0.z,gz0.z);
+      vec3 g110 = vec3(gx0.w,gy0.w,gz0.w);
+      vec3 g001 = vec3(gx1.x,gy1.x,gz1.x);
+      vec3 g101 = vec3(gx1.x,gy1.y,gz1.y);
+      vec3 g011 = vec3(gx1.z,gy1.z,gz1.z);
+      vec3 g111 = vec3(gx1.w,gy1.w,gz1.w);
+
+      vec4 norm0 = taylorInvSqrt(vec4(dot(g000, g000), dot(g010, g010), dot(g100, g100), dot(g110, g110)));
+      g000 *= norm0.x; g010 *= norm0.y; g100 *= norm0.z; g110 *= norm0.w;
+      vec4 norm1 = taylorInvSqrt(vec4(dot(g001, g001), dot(g011, g011), dot(g101, g101), dot(g111, g111)));
+      g001 *= norm1.x; g011 *= norm1.y; g101 *= norm1.z; g111 *= norm1.w;
+
+      float n000 = dot(g000, Pf0);
+      float n100 = dot(g100, vec3(Pf1.x, Pf0.yz));
+      float n010 = dot(g010, vec3(Pf0.x, Pf1.y, Pf0.z));
+      float n110 = dot(g110, vec3(Pf1.xy, Pf0.z));
+      float n001 = dot(g001, vec3(Pf0.xy, Pf1.z));
+      float n101 = dot(g101, vec3(Pf1.x, Pf0.y, Pf1.z));
+      float n011 = dot(g011, vec3(Pf0.x, Pf1.yz));
+      float n111 = dot(g111, Pf1);
+
+      vec3 fade_xyz = fade(Pf0);
+      vec4 n_z = mix(vec4(n000, n100, n010, n110), vec4(n001, n101, n011, n111), fade_xyz.z);
+      vec2 n_yz = mix(n_z.xy, n_z.zw, fade_xyz.y);
+      return 2.2 * mix(n_yz.x, n_yz.y, fade_xyz.x);
+    }
+
+    void main() {
+      float lowFreqNoise = pnoise(position * 0.8 + vec3(u_time * 0.5), vec3(10.0));
+      float highFreqNoise = pnoise(position * 2.2 + vec3(u_time * 1.0), vec3(10.0));
+      float noise = lowFreqNoise * 0.6 + highFreqNoise * 0.4;
+
+      float displacement = u_frequency * noise * 0.50;
+      vDisplacement = clamp((displacement + 1.0) / 2.0, 0.0, 1.0);
+
+      vec3 newPosition = position + normal * displacement;
+      vec4 mvPosition = modelViewMatrix * vec4(newPosition, 1.0);
+      vec4 clipPosition = projectionMatrix * mvPosition;
+
+      vScreenPos = clipPosition.xy / clipPosition.w;
+      vNormal = normalize(normalMatrix * normal);
+      vViewDir = normalize(-mvPosition.xyz);
+
+      gl_PointSize = (1.6 + u_frequency * 1.5) * (12.0 / -mvPosition.z);
+      gl_Position = clipPosition;
+    }
+  </script>
+
+  <!-- Fragment Shader -->
+  <script id="fragmentshader" type="x-shader/x-fragment">
+    uniform vec2 u_mouse;
+    varying float vDisplacement;
+    varying vec2 vScreenPos;
+    varying vec3 vNormal;
+    varying vec3 vViewDir;
+
+    void main() {
+      float distToCenter = length(gl_PointCoord - vec2(0.5));
+      if (distToCenter > 0.5) discard;
+
+      vec3 darkRed = vec3(0.08, 0.0, 0.008);
+      vec3 neonRed = vec3(1.7, 0.03, 0.06);
+      vec3 color = mix(darkRed, neonRed, vDisplacement);
+
+      float rim = pow(1.0 - clamp(dot(vNormal, vViewDir), 0.0, 1.0), 3.0);
+      vec3 rimColor = vec3(0.85, 0.03, 0.09) * rim;
+
+      float coreDist = length(vScreenPos);
+      float core = smoothstep(0.6, 0.0, coreDist) * (0.4 + vDisplacement * 0.6);
+      vec3 coreColor = vec3(1.3, 0.06, 0.12) * core;
+
+      float mouseDist = distance(vScreenPos, u_mouse);
+      float hoverGlow = smoothstep(0.18, 0.0, mouseDist);
+      vec3 cursorGlowColor = vec3(2.6, 0.05, 0.14) * hoverGlow;
+
+      vec3 finalColor = color + rimColor + coreColor + cursorGlowColor;
+      gl_FragColor = vec4(finalColor, 0.9);
+    }
+  </script>
+
+  <script src="js/error-overlay.js"></script>
+  <script src="js/clock.js"></script>
+  <script src="js/boot-screen.js"></script>
+  <script src="js/audio-visualizer.js"></script>
+  <script src="js/echo-robot.js"></script>
+  <script src="js/echo-personality.js"></script>
+  <script src="js/echo-chat.js"></script>
+  <script src="js/echo-realtime.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

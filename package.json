@@ -1,0 +1,14 @@
+{
+  "name": "echo-robot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Echo animatronic head app and Pico firmware",
+  "scripts": {
+    "start": "node app/server.js",
+    "check": "for file in app/js/*.js; do node --check \"$file\" || exit 1; done",
+    "build:firmware": "cd firmware && ~/.platformio/penv/bin/pio run"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
