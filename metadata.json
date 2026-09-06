@@ -1,0 +1,11 @@
+{
+  "name": "Animatronic Head",
+  "description": "Echo animatronic head app featuring real-time interactive audio visualizer, AI chat, vision, and robot control.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

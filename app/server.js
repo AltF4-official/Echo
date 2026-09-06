@@ -6,23 +6,31 @@ const url = require('url');
 let WebSocket;
 try { WebSocket = require('ws'); } catch (_) { WebSocket = null; }
 
-// Load .env
-const env = {};
+// Load .env and process.env
+const env = Object.assign({}, process.env);
 try {
-  const raw = fs.readFileSync(path.join(__dirname, '.env'), 'utf8');
-  raw.split('\n').forEach(function (line) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#')) return;
-    const eq = trimmed.indexOf('=');
-    if (eq === -1) return;
-    const key = trimmed.slice(0, eq).trim();
-    let value = trimmed.slice(eq + 1).trim();
-    const isQuoted =
-      (value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'"));
-    if (isQuoted) value = value.slice(1, -1);
-    env[key] = value;
-  });
+  const envCandidates = [
+    path.join(__dirname, '.env'),
+    path.join(__dirname, '..', '.env')
+  ];
+  for (const envPath of envCandidates) {
+    if (fs.existsSync(envPath)) {
+      const raw = fs.readFileSync(envPath, 'utf8');
+      raw.split('\n').forEach(function (line) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith('#')) return;
+        const eq = trimmed.indexOf('=');
+        if (eq === -1) return;
+        const key = trimmed.slice(0, eq).trim();
+        let value = trimmed.slice(eq + 1).trim();
+        const isQuoted =
+          (value.startsWith('"') && value.endsWith('"')) ||
+          (value.startsWith("'") && value.endsWith("'"));
+        if (isQuoted) value = value.slice(1, -1);
+        if (!env[key]) env[key] = value;
+      });
+    }
+  }
 } catch (_) {}
 
 const MIME = {
@@ -424,6 +432,6 @@ if (WebSocket) {
   console.warn('ws package not installed — realtime voice disabled. Run: npm install ws');
 }
 
-server.listen(3000, function () {
-  console.log('Running at http://localhost:3000');
+server.listen(3000, '0.0.0.0', function () {
+  console.log('Running at http://0.0.0.0:3000');
 });
